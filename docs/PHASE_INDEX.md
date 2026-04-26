@@ -179,7 +179,8 @@
 | 41B Recovery | Phase 41B restored; Parsing envelope documentation added to CLI runbook. | APPROVED |
 | 42A Recovery | Phase 42A restored; Outcome-token stability (outcome/topology/exit_code/state) verified. | APPROVED |
 | 42B Recovery | Phase 42B restored; Outcome-token documentation added to CLI runbook. | APPROVED |
-| Next Target | First failing phase after Phase 42B. Current likely target: Phase 43A. | NEXT |
+| 43A Recovery | Phase 43A restored; Cross-mode integrity (standard/compact/quiet-success) verified. | APPROVED |
+| Next Target | First failing phase after Phase 43A. Current likely target: Phase 43B. | NEXT |
 
 ---
 

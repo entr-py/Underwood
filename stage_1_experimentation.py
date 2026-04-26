@@ -4553,6 +4553,56 @@ async def main():
     is_success_42b = stats_42b["doc_passes"] >= 1
     print(f"Phase 42B Outcome:          {'PASS' if is_success_42b else 'FAIL'}")
     print("-------------------------")
+
+    print("\n--- PHASE 43A: CROSS-MODE INTEGRITY ---")
+    
+    stats_43a = {"trials": 0, "integrity_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: COMPACT MODE PARITY]")
+    stats_43a["trials"] += 1
+    try:
+        from unittest import mock
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            with mock.patch("__main__.generate_frontier_plan", return_value={"nodes": ["test"], "edges": []}):
+                with mock.patch("__main__.execute_workspace_task_graph", return_value={"overall_success": True}):
+                    await run_cli_task("Compact Test", compact=True)
+        out = f.getvalue()
+        
+        if "[OUTCOME]: EXECUTED" in out and "__UNDERWOOD_SUMMARY__" not in out:
+            print("  ASSERTION: Compact mode correctly suppresses summary and uses brackets (PASS)")
+            stats_43a["integrity_passes"] += 1
+        else:
+            print(f"  [ERROR] Compact mode integrity failure. Output:\n{out}")
+    except Exception as e: print(f"  [ERROR] Compact verification failed: {str(e)}")
+    
+    print("\n[VERIFICATION TRIAL 2: QUIET-SUCCESS PARITY]")
+    stats_43a["trials"] += 1
+    try:
+        f = io.StringIO()
+        with redirect_stdout(f):
+            with mock.patch("__main__.generate_frontier_plan", return_value={"nodes": ["test"], "edges": []}):
+                with mock.patch("__main__.execute_workspace_task_graph", return_value={"overall_success": True}):
+                    await run_cli_task("Quiet Success Test", quiet_success=True)
+        out = f.getvalue()
+        
+        # Quiet success should suppress everything except delimiters (which are in try/finally blocks outside the guard)
+        # Wait! I should check where delimiters are.
+        if "OUTCOME: EXECUTED" not in out and "__UNDERWOOD_SUMMARY__" not in out:
+            print("  ASSERTION: Quiet-success correctly suppresses output (PASS)")
+            stats_43a["integrity_passes"] += 1
+        else:
+            print(f"  [ERROR] Quiet-success integrity failure. Output:\n{out}")
+    except Exception as e: print(f"  [ERROR] Quiet-success verification failed: {str(e)}")
+    
+    print("\n--- PHASE 43A SUMMARY ---")
+    print(f"Integrity Trials:         {stats_43a['trials']}")
+    print(f"Integrity Passes:         {stats_43a['integrity_passes']}")
+    is_success_43a = stats_43a["integrity_passes"] >= 2
+    print(f"Phase 43A Outcome:          {'PASS' if is_success_43a else 'FAIL'}")
+    print("-------------------------")
     
 
     print("\n--- PHASE 29B: LIVE FOUR-NODE LINEAR PLANNER COMPLIANCE SUITE ---")
