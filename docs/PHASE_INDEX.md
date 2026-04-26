@@ -172,7 +172,14 @@
 | 38B Recovery | Phase 38B restored; Parity between invocation header and summary fields verified. | APPROVED |
 | 38C Recovery | Phase 38C restored; Invocation header documentation added to CLI runbook. | APPROVED |
 | 39A Recovery | Phase 39A restored; Session start/end delimiters verified for all output envelopes. | APPROVED |
-| Next Target | First failing phase after Phase 39A. Current likely target: Phase 39B. | NEXT |
+| 39B Recovery | Phase 39B restored; Session delimiter documentation added to CLI runbook. | APPROVED |
+| 40A Recovery | Phase 40A restored; Footer ordering (Summary before End Delimiter) verified. | APPROVED |
+| 40B Recovery | Phase 40B restored; Terminal closure documentation added to CLI runbook. | APPROVED |
+| 41A Recovery | Phase 41A restored; Parsing stability (copy-paste safe envelope) verified. | APPROVED |
+| 41B Recovery | Phase 41B restored; Parsing envelope documentation added to CLI runbook. | APPROVED |
+| 42A Recovery | Phase 42A restored; Outcome-token stability (outcome/topology/exit_code/state) verified. | APPROVED |
+| 42B Recovery | Phase 42B restored; Outcome-token documentation added to CLI runbook. | APPROVED |
+| Next Target | First failing phase after Phase 42B. Current likely target: Phase 43A. | NEXT |
 
 ---
 

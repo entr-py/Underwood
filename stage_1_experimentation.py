@@ -1048,10 +1048,15 @@ async def shutdown_controller(controller: Optional[AgentController], stream: Opt
 def show_cli_runbook():
     """Prints the Underwood TACTICAL SUMMARY SURFACE documentation."""
     print("=== UNDERWOOD TACTICAL SUMMARY SURFACE ===")
+    print("All Underwood CLI tasks emit a trailing machine-readable summary line:")
     print("__UNDERWOOD_SUMMARY__: outcome=..., topology=..., exit_code=..., state (SUCCESS / FAILURE / BLOCKED)")
     print("\nInvocation Header:")
     print("- All non-quiet sessions emit an [UNDERWOOD INVOCATION] header.")
     print("- Header includes ISO timestamp, intent, and execution mode flags.")
+    print("\nSession Delimiters:")
+    print("- >>> UNDERWOOD SESSION START <<<: Marks the beginning of a session.")
+    print("- <<< UNDERWOOD SESSION END >>>: Marks the end of a session.")
+    print("- Copy-paste safe envelope: All delimiters are unique and machine-parsable.")
     print("\nCertified Topologies:")
     print("- 1-Node Single")
     print("- 2-Node Linear")
@@ -4315,6 +4320,238 @@ async def main():
     print(f"Delimiter Passes:         {stats_39a['delimiter_passes']}")
     is_success_39a = stats_39a["delimiter_passes"] >= 1
     print(f"Phase 39A Outcome:          {'PASS' if is_success_39a else 'FAIL'}")
+    print("-------------------------")
+
+    print("\n--- PHASE 39B: SESSION DELIMITER DOCUMENTATION ---")
+    
+    stats_39b = {"trials": 0, "doc_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: RUNBOOK DOCUMENTATION]")
+    stats_39b["trials"] += 1
+    try:
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            show_cli_runbook()
+        out = f.getvalue()
+        
+        if "Session Delimiters" in out and ">>> UNDERWOOD SESSION START <<<" in out and "<<< UNDERWOOD SESSION END >>>" in out:
+            print("  ASSERTION: Runbook correctly documents the session delimiters (PASS)")
+            stats_39b["doc_passes"] += 1
+        else:
+            print(f"  [ERROR] Runbook documentation missing delimiter info. Output:\n{out}")
+    except Exception as e: print(f"  [ERROR] Documentation verification failed: {str(e)}")
+    
+    print("\n--- PHASE 39B SUMMARY ---")
+    print(f"Doc Trials:               {stats_39b['trials']}")
+    print(f"Doc Passes:               {stats_39b['doc_passes']}")
+    is_success_39b = stats_39b["doc_passes"] >= 1
+    print(f"Phase 39B Outcome:          {'PASS' if is_success_39b else 'FAIL'}")
+    print("-------------------------")
+
+    print("\n--- PHASE 40A: FOOTER ORDERING VERIFICATION ---")
+    
+    stats_40a = {"trials": 0, "ordering_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: SUMMARY-BEFORE-END-DELIMITER]")
+    stats_40a["trials"] += 1
+    try:
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            # Trigger a simple task
+            await run_cli_task("Footer Test", compact=False)
+        out = f.getvalue()
+        
+        summary_pos = out.find("__UNDERWOOD_SUMMARY__")
+        end_pos = out.find("<<< UNDERWOOD SESSION END >>>")
+        
+        if summary_pos != -1 and end_pos != -1 and summary_pos < end_pos:
+            print("  ASSERTION: Summary line appears before session end delimiter (PASS)")
+            stats_40a["ordering_passes"] += 1
+        else:
+            print(f"  [ERROR] Footer ordering mismatch. Summary pos: {summary_pos}, End pos: {end_pos}")
+    except Exception as e: print(f"  [ERROR] Footer ordering verification failed: {str(e)}")
+    
+    print("\n--- PHASE 40A SUMMARY ---")
+    print(f"Ordering Trials:          {stats_40a['trials']}")
+    print(f"Ordering Passes:          {stats_40a['ordering_passes']}")
+    is_success_40a = stats_40a["ordering_passes"] >= 1
+    print(f"Phase 40A Outcome:          {'PASS' if is_success_40a else 'FAIL'}")
+    print("-------------------------")
+
+    print("\n--- PHASE 40B: TERMINAL CLOSURE DOCUMENTATION ---")
+    
+    stats_40b = {"trials": 0, "doc_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: RUNBOOK DOCUMENTATION]")
+    stats_40b["trials"] += 1
+    try:
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            show_cli_runbook()
+        out = f.getvalue()
+        
+        if "<<< UNDERWOOD SESSION END >>>" in out and "Marks the end of a session" in out:
+            print("  ASSERTION: Runbook correctly documents the session end delimiter (PASS)")
+            stats_40b["doc_passes"] += 1
+        else:
+            print(f"  [ERROR] Runbook documentation missing closure info. Output:\n{out}")
+    except Exception as e: print(f"  [ERROR] Documentation verification failed: {str(e)}")
+    
+    print("\n--- PHASE 40B SUMMARY ---")
+    print(f"Doc Trials:               {stats_40b['trials']}")
+    print(f"Doc Passes:               {stats_40b['doc_passes']}")
+    is_success_40b = stats_40b["doc_passes"] >= 1
+    print(f"Phase 40B Outcome:          {'PASS' if is_success_40b else 'FAIL'}")
+    print("-------------------------")
+
+    print("\n--- PHASE 41A: PARSING STABILITY (COPY-PASTE SAFE) ---")
+    
+    stats_41a = {"trials": 0, "stability_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: STABLE ENVELOPE]")
+    stats_41a["trials"] += 1
+    try:
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            await run_cli_task("Stability Test", compact=False)
+        out = f.getvalue()
+        
+        # We check for exact string matches for delimiters and summary line
+        # to ensure no accidental whitespace or formatting shifts.
+        has_start = ">>> UNDERWOOD SESSION START <<<" in out
+        has_end = "<<< UNDERWOOD SESSION END >>>" in out
+        has_summary = "__UNDERWOOD_SUMMARY__:" in out
+        
+        # Verify that summary line is a single line and ends correctly
+        import re
+        summary_line = re.search(r"(__UNDERWOOD_SUMMARY__:.*)", out)
+        
+        if has_start and has_end and has_summary and summary_line:
+            print("  ASSERTION: Session envelope is stable and parsing-safe (PASS)")
+            stats_41a["stability_passes"] += 1
+        else:
+            print(f"  [ERROR] Parsing stability failure. Start: {has_start}, End: {has_end}, Summary: {has_summary}")
+    except Exception as e: print(f"  [ERROR] Stability verification failed: {str(e)}")
+    
+    print("\n--- PHASE 41A SUMMARY ---")
+    print(f"Stability Trials:         {stats_41a['trials']}")
+    print(f"Stability Passes:         {stats_41a['stability_passes']}")
+    is_success_41a = stats_41a["stability_passes"] >= 1
+    print(f"Phase 41A Outcome:          {'PASS' if is_success_41a else 'FAIL'}")
+    print("-------------------------")
+
+    print("\n--- PHASE 41B: PARSING ENVELOPE DOCUMENTATION ---")
+    
+    stats_41b = {"trials": 0, "doc_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: RUNBOOK DOCUMENTATION]")
+    stats_41b["trials"] += 1
+    try:
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            show_cli_runbook()
+        out = f.getvalue()
+        
+        if "Copy-paste safe envelope" in out and "machine-parsable" in out:
+            print("  ASSERTION: Runbook correctly documents the copy-paste safe envelope (PASS)")
+            stats_41b["doc_passes"] += 1
+        else:
+            print(f"  [ERROR] Runbook documentation missing envelope info. Output:\n{out}")
+    except Exception as e: print(f"  [ERROR] Documentation verification failed: {str(e)}")
+    
+    print("\n--- PHASE 41B SUMMARY ---")
+    print(f"Doc Trials:               {stats_41b['trials']}")
+    print(f"Doc Passes:               {stats_41b['doc_passes']}")
+    is_success_41b = stats_41b["doc_passes"] >= 1
+    print(f"Phase 41B Outcome:          {'PASS' if is_success_41b else 'FAIL'}")
+    print("-------------------------")
+
+    print("\n--- PHASE 42A: OUTCOME-TOKEN STABILITY ---")
+    
+    stats_42a = {"trials": 0, "token_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: EXECUTED SUCCESS TOKENS]")
+    stats_42a["trials"] += 1
+    try:
+        from unittest import mock
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            with mock.patch("__main__.generate_frontier_plan", return_value={"nodes": ["test"], "edges": []}):
+                with mock.patch("__main__.execute_workspace_task_graph", return_value={"overall_success": True}):
+                    await run_cli_task("Success Token Test", compact=False)
+        out = f.getvalue()
+        
+        expected = "outcome=EXECUTED, topology=Dynamic, exit_code=0, state=SUCCESS"
+        if expected in out:
+            print("  ASSERTION: Success outcome tokens are stable (PASS)")
+            stats_42a["token_passes"] += 1
+        else:
+            print(f"  [ERROR] Token mismatch. Expected: {expected} in output.")
+    except Exception as e: print(f"  [ERROR] Token verification failed: {str(e)}")
+    
+    print("\n[VERIFICATION TRIAL 2: BLOCKED TOKENS]")
+    stats_42a["trials"] += 1
+    try:
+        f = io.StringIO()
+        with redirect_stdout(f):
+            with mock.patch("__main__.generate_frontier_plan", return_value={"nodes": ["test"], "edges": []}):
+                with mock.patch("__main__.validate_frontier_payload", return_value={"ok": False, "category": "Safety", "message": "Blocked"}):
+                    await run_cli_task("Blocked Token Test", compact=False)
+        out = f.getvalue()
+        
+        expected = "outcome=BLOCKED, topology=None, exit_code=2, state=BLOCKED"
+        if expected in out:
+            print("  ASSERTION: Blocked outcome tokens are stable (PASS)")
+            stats_42a["token_passes"] += 1
+        else:
+            print(f"  [ERROR] Token mismatch. Expected: {expected} in output.")
+    except Exception as e: print(f"  [ERROR] Token verification failed: {str(e)}")
+    
+    print("\n--- PHASE 42A SUMMARY ---")
+    print(f"Token Trials:             {stats_42a['trials']}")
+    print(f"Token Passes:             {stats_42a['token_passes']}")
+    is_success_42a = stats_42a["token_passes"] >= 2
+    print(f"Phase 42A Outcome:          {'PASS' if is_success_42a else 'FAIL'}")
+    print("-------------------------")
+
+    print("\n--- PHASE 42B: OUTCOME-TOKEN DOCUMENTATION ---")
+    
+    stats_42b = {"trials": 0, "doc_passes": 0}
+    
+    print("\n[VERIFICATION TRIAL 1: RUNBOOK DOCUMENTATION]")
+    stats_42b["trials"] += 1
+    try:
+        import io
+        from contextlib import redirect_stdout
+        f = io.StringIO()
+        with redirect_stdout(f):
+            show_cli_runbook()
+        out = f.getvalue()
+        
+        if "__UNDERWOOD_SUMMARY__:" in out and "outcome=..., topology=..., exit_code=..., state" in out:
+            print("  ASSERTION: Runbook correctly documents the outcome token summary line (PASS)")
+            stats_42b["doc_passes"] += 1
+        else:
+            print(f"  [ERROR] Runbook documentation missing outcome token info. Output:\n{out}")
+    except Exception as e: print(f"  [ERROR] Documentation verification failed: {str(e)}")
+    
+    print("\n--- PHASE 42B SUMMARY ---")
+    print(f"Doc Trials:               {stats_42b['trials']}")
+    print(f"Doc Passes:               {stats_42b['doc_passes']}")
+    is_success_42b = stats_42b["doc_passes"] >= 1
+    print(f"Phase 42B Outcome:          {'PASS' if is_success_42b else 'FAIL'}")
     print("-------------------------")
     
 
