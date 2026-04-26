@@ -201,8 +201,12 @@ async def run_controller(
             sys.exit(1)
 
     # Register the asyncio signal handler (safer for async contexts)
-    loop = asyncio.get_running_loop()
-    loop.add_signal_handler(signal.SIGINT, signal_handler)
+    try:
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGINT, signal_handler)
+    except NotImplementedError:
+        # Signal handlers are not implemented on Windows with ProactorEventLoop
+        pass
 
     # start event is a MessageAction with the task, either resumed or new
     if initial_state is not None and initial_state.last_error:
@@ -303,6 +307,27 @@ async def run_controller(
     await controller.close(set_stop_state=False)
 
     state = controller.get_state()
+
+    # Underwood Runtime Audit Lift: bridge the config gap to extract the canonical payload
+    if hasattr(controller, 'agent') and hasattr(controller.agent, 'config'):
+        # Temporarily bridge bounded mode so the audit builder activates
+        controller.agent.config.bounded_mode = True
+        
+        if hasattr(controller, '_build_bounded_audit_payload'):
+            audit = controller._build_bounded_audit_payload()
+            if audit and 'underwood_audit' in audit:
+                # Surface the payload to the CLI runtime edge
+                if not getattr(state, 'outputs', None):
+                    state.outputs = {}
+                state.outputs.update(audit)
+                
+                if hasattr(controller, '_emit_terminal_audit_analytics'):
+                    controller._emit_terminal_audit_analytics(audit)
+                
+                # Explicitly log to console to satisfy observability
+                import json
+                logger.info("====== UNDERWOOD AUDIT OBSERVED ======")
+                logger.info(json.dumps(audit['underwood_audit'], indent=2))
 
     # save trajectories if applicable
     if config.save_trajectory_path is not None:

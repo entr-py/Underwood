@@ -89,3 +89,16 @@ def get_effective_llm_base_url(
     ):
         return LEMONADE_DOCKER_BASE_URL
     return base_url
+    
+    
+def get_openhands_home() -> str:
+    """Get the OpenHands home directory.
+    
+    Returns the value of OPENHANDS_HOME if set, otherwise the 
+    parent directory of the openhands package.
+    """
+    home = os.environ.get('OPENHANDS_HOME')
+    if home:
+        return os.path.abspath(home)
+    # Default to the parent of the 'openhands' directory (the repo root)
+    return str(Path(__file__).parent.parent.parent.absolute())

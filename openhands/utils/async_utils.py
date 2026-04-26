@@ -116,3 +116,14 @@ def _run_in_loop(coro: Coroutine, loop: asyncio.AbstractEventLoop, timeout: floa
     future = asyncio.run_coroutine_threadsafe(coro, loop)
     result = future.result(timeout=timeout)
     return result
+    
+    
+def is_async_callable(obj: Callable) -> bool:
+    """Check if the given object is an async callable (coroutine function 
+    or an object with an async __call__ method).
+    """
+    if asyncio.iscoroutinefunction(obj):
+        return True
+    if hasattr(obj, '__call__'):
+        return asyncio.iscoroutinefunction(obj.__call__)
+    return False

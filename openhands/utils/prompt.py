@@ -86,10 +86,29 @@ class PromptManager:
             template_path = os.path.join(self.prompt_dir, template_name)
             raise FileNotFoundError(f'Prompt file {template_path} not found')
 
-    def get_system_message(self, **context) -> str:
+    def get_system_message(
+        self,
+        bounded_mode: bool = False,
+        bounded_validation_command: str | None = None,
+        **context,
+    ) -> str:
         from openhands.agenthub.codeact_agent.tools.prompt import refine_prompt
 
         system_message = self.system_template.render(**context).strip()
+        if bounded_mode and bounded_validation_command:
+            bounded_instructions = (
+                f'\n\n'
+                f'################################################################################\n'
+                f'# BOUNDED MODE ACTIVE\n'
+                f'# - Execute the task efficiently.\n'
+                f'# - Validation command: `{bounded_validation_command}`\n'
+                f'# - The validation command is ALREADY CONFIGURED and tracked by the controller.\n'
+                f'# - DO NOT search for, configure, or change this command.\n'
+                f'# - Once you believe the task is complete, you MUST run this exact command.\n'
+                f'# - Do not engage in exploratory behavior or long-horizon planning.\n'
+                f'################################################################################'
+            )
+            system_message += bounded_instructions
         return refine_prompt(system_message)
 
     def get_example_user_message(self) -> str:

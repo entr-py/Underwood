@@ -52,6 +52,20 @@ class TrafficControlState(str, Enum):
     PAUSED = 'paused'
 
 
+@dataclass(frozen=True)
+class ToolPermissionContext:
+    deny_names: set[str] = field(default_factory=set)
+    deny_prefixes: set[str] = field(default_factory=set)
+
+    def blocks(self, tool_name: str) -> bool:
+        if tool_name in self.deny_names:
+            return True
+        for prefix in self.deny_prefixes:
+            if tool_name.startswith(prefix):
+                return True
+        return False
+
+
 @dataclass
 class State:
     """Represents the running state of an agent in the OpenHands system, saving data of its operation and memory.
@@ -114,6 +128,7 @@ class State:
     # evaluation tasks to store extra data needed to track the progress/state of the task.
     extra_data: dict[str, Any] = field(default_factory=dict)
     last_error: str = ''
+    stop_reason: str | None = None
 
     # NOTE: deprecated args, kept here temporarily for backwards compatability
     # Will be remove in 30 days

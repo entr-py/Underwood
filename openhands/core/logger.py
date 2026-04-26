@@ -25,10 +25,12 @@ from termcolor import colored
 # aifc was removed in Python 3.13 but speech_recognition still references it
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
-    import aifc
-
-    # Stop the linter from deleting the import
-    _AIFC = aifc.__name__
+    try:
+        import aifc
+        # Stop the linter from deleting the import
+        _AIFC = aifc.__name__
+    except ImportError:
+        pass
 
 warnings.filterwarnings('ignore', category=SyntaxWarning, module=r'pydub\.utils')
 

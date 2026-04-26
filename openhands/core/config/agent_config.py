@@ -7,7 +7,7 @@
 # Tag: Legacy-V0
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from openhands.core.config.condenser_config import (
     CondenserConfig,
@@ -73,6 +73,16 @@ class AgentConfig(BaseModel):
     """Extended configuration for the agent."""
     runtime: str | None = Field(default=None)
     """Runtime type (e.g., 'docker', 'local', 'cli') used for runtime-specific tool behavior."""
+    bounded_mode: bool = Field(default=True)
+    """Whether the agent is running in bounded mode, which enforces a validation command and stops execution after one attempt."""
+    bounded_validation_command: str | None = Field(default='test -f test.txt')
+    """The command to run to validate the task in bounded mode."""
+
+    @model_validator(mode='after')
+    def validate_bounded_mode(self) -> AgentConfig:
+        if self.bounded_mode and not self.bounded_validation_command:
+            raise ValueError('bounded_validation_command required when bounded_mode=True')
+        return self
 
     model_config = ConfigDict(extra='forbid')
 
@@ -82,7 +92,10 @@ class AgentConfig(BaseModel):
         Returns the appropriate system prompt filename based on the agent configuration.
         When enable_plan_mode is True, automatically uses the long horizon system prompt
         unless a custom system_prompt_filename was explicitly set (not the default).
+        If bounded_mode is True, always use the standard system prompt.
         """
+        if self.bounded_mode:
+            return self.system_prompt_filename
         if self.enable_plan_mode and self.system_prompt_filename == 'system_prompt.j2':
             return 'system_prompt_long_horizon.j2'
         return self.system_prompt_filename

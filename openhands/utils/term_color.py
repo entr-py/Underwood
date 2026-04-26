@@ -8,6 +8,7 @@ class TermColor(Enum):
 
     WARNING = 'yellow'
     SUCCESS = 'green'
+    SUCCESS_LIGHT = 'light_green'
     ERROR = 'red'
     INFO = 'blue'
     GREY = 'dark_grey'

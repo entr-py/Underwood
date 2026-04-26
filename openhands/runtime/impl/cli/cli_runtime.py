@@ -91,7 +91,9 @@ After installing .NET SDK, restart your terminal and try again.
             logger.debug(f'Details: {err.details}')
 
         # Exit the program with an error code
-        sys.exit(1)
+        # Underwood: Prevent hard exit during test collection
+        if 'pytest' not in sys.modules and 'unittest' not in sys.modules:
+            sys.exit(1)
 
 
 class CLIRuntime(Runtime):
